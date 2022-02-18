@@ -70,10 +70,12 @@ class OrderApplicationTest {
 
     @Test
     void should_create_order_within_2s() {
-        var orderId = Steadybit.networkDelayPackages()
-                .delay(Duration.ofSeconds(2))
-                .forContainers(broker)
-                .exec(() -> http.postForObject("/orders", CREATE_ORDER_BODY, JsonNode.class).get("id").asLong());
+        var orderId = Steadybit.networkDelayPackages(Duration.ofSeconds(2))
+                .forContainers(broker) //the container to attack
+                .exec(() -> {
+                    //This code will be executed while running the delay attack
+                    return http.postForObject("/orders", CREATE_ORDER_BODY, JsonNode.class).get("id").asLong();
+                });
 
         var event = (OrderCreatedEvent) jms.receiveAndConvert("order_created");
         assertThat(event.getId()).isEqualTo(orderId);
@@ -85,6 +87,7 @@ class OrderApplicationTest {
                 .forContainers(broker)
                 .exec(() -> {
                     var id = http.postForObject("/orders", CREATE_ORDER_BODY, JsonNode.class).get("id").asLong();
+                    //we need to wait for the exception while executing the attack
                     asyncUncaughtExceptionHandler.waitFor(UncategorizedJmsException.class);
                     return id;
                 });
