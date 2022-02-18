@@ -1,0 +1,14 @@
+spring:
+  jpa:
+    database: postgresql
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate.globally_quoted_identifiers: true
+  activemq:
+    in-memory: false
+  jms:
+    template:
+      receive-timeout: 10s
+    cache:
+      enabled: false
